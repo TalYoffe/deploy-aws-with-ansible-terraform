@@ -203,7 +203,7 @@ resource "aws_route_table_association" "wp_public1_assoc" {
 
 resource "aws_route_table_association" "wp_public2assoc" {
   subnet_id      = "{aws_subnet.wp_public2_subnet.id}"
-	  route_table_id = "${aws_route_table.wp_public_rt.id}"
+  route_table_id = "${aws_route_table.wp_public_rt.id}"
 }
 
 resource "aws_route_table_association" "wp_private1_assoc" {
@@ -310,5 +310,48 @@ resource "aws_security_group" "wp_rds_sg" {
       "${aws_security_group.wp_public_sg.id}",
       "${aws_security_group.wp_public_sg.id}",
     ]
+  }
+}
+
+#VPC Endpoint for S3
+#https://docs.aws.amazon.com/AmazonVPC/latest/UserGuide/vpc-endpoints.html#
+
+resource "aws_vpc_endpoint" "wp_private-s3_endpoint" {
+  vpc_id       = "${aws_vpc.wp_vpc.id}"
+  service_name = "com.amazonaws.${var.aws_region}.s3"
+
+  route_table_ids = ["${aws_vpc.wp_vpc.main_route_table_id}",
+    "${aws_route_table.wp_public_rt.id}",
+  ]
+
+  policy = <<POLICY
+{
+	"Statement": [
+		{
+			"Action": "*",
+			"Effect": "Allow",
+			"Resource": "*",
+			"Principal": "*"
+	}
+    ]
+}
+POLICY
+}
+
+#------------- S3 code bucket --------
+
+resource "random_id" "wp_code_bucket" {
+  byte_length = 2
+}
+
+resource "aws_s3_bucket" "code" {
+  bucket = "${var.domain_name}-${random_id.wp_code_bucket.dec}"
+  acl    = "private"
+
+  #ensures s3 bucket destruction
+  force_destroy = true
+
+  tags {
+    Name = "code bucket"
   }
 }
