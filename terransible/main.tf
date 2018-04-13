@@ -399,11 +399,11 @@ EOD
   }
 
   provisioner "local-exec" {
-    command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.wp_dev.id} --profile superhero && ansible-playbook -i aws_hosts wordpress.yml"
+    command = "aws ec2 wait instance-status-ok --instance-ids ${aws_instance.wp_dev.id} --profile terraform && ansible-playbook -i aws_hosts wordpress.yml"
   }
 }
 
-#------Load Balancer-------------
+#load balancer
 
 resource "aws_elb" "wp_elb" {
   name = "${var.domain_name}-elb"
@@ -439,7 +439,7 @@ resource "aws_elb" "wp_elb" {
   }
 }
 
-#-------Ami---------------------
+#AMI 
 
 resource "random_id" "golden_ami" {
   byte_length = 8
