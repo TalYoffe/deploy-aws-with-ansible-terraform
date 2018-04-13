@@ -1,7 +1,4 @@
 ---
-
-
-
 - hosts: dev
   become: yes
   remote_user: ec2-user
